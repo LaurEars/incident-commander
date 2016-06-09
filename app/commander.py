@@ -3,6 +3,7 @@ import re
 import rethinkdb as r
 from rethinkdb.errors import RqlRuntimeError, RqlDriverError
 
+from app.incident import Incident
 from templates.responses import CREATE_INCIDENT_FAILED
 
 
@@ -61,8 +62,8 @@ class Commander:
         current_app_name = re.match(r'(?:for ?)(.*)', app_name)
         if not current_app_name:
             return CREATE_INCIDENT_FAILED.render()
-
-        # todo: make channel
+        incident = Incident(app_name)
+        incident.create_channel()
         # todo: say stuff in channel
         # todo: push empty document to database
-        return 'Created incident!'
+        return 'Created incident!: {}'.format(incident.name)

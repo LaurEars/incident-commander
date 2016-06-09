@@ -20,3 +20,9 @@ class Incident:
     def add_task(self, task):
         self.tasks.append(task)
         # todo: needs some database saving stuff
+
+    def create_channel(self):
+        """Ensures that a channel is created for the incident"""
+        # todo: create channel in slack - hopefully it doesn't already exist
+        self.slack_channel = None
+        # todo: update in db
