@@ -1,6 +1,7 @@
 import re
 
 import rethinkdb as r
+from repool import ConnectionPool
 from rethinkdb.errors import RqlRuntimeError, RqlDriverError
 
 from app.incident import Incident
@@ -14,9 +15,11 @@ class Commander:
 
     def __init__(self, config):
         self.config = config
+        print(self.config)
+
         self.name = self.config['name']
         self.id = self.config['id']
-        print(self.config)
+
         self.rdb = r.connect(
             host=self.config['db_host'],
             port=self.config['db_port']
@@ -29,8 +32,30 @@ class Commander:
         except RqlRuntimeError:
             print('App database already exists.')
 
+        self.rdb.close()
+
+        self.pool = ConnectionPool(
+            host=self.config['db_host'],
+            port=self.config['db_port'],
+            db="commander"
+        )
+
+
+    def pre_message(self):
+        try:
+            self.rdb = self.pool.acquire()
+        except RqlDriverError:
+            print("Could not connect to db")
+
+    def post_message(self):
+        self.pool.release(self.rdb)
+
+
     def process_message(self, message):
-        return self.parse_message(message['text'])
+        self.pre_message()
+        return_val = self.parse_message(message['text'])
+        self.post_message()
+        return return_val
 
     def parse_message(self, message):
         stripped_message = message.strip()
