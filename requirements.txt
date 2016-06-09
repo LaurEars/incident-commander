@@ -4,3 +4,5 @@ pyyaml
 websocket-client
 slackclient
 rethinkdb
+Jinja2
+repool

@@ -1,7 +1,11 @@
 import re
 
 import rethinkdb as r
+from repool import ConnectionPool
 from rethinkdb.errors import RqlRuntimeError, RqlDriverError
+
+from app.incident import Incident
+from templates.responses import CREATE_INCIDENT_FAILED
 
 
 class Commander:
@@ -11,8 +15,11 @@ class Commander:
 
     def __init__(self, config):
         self.config = config
-        self.name = self.config['name']
         print(self.config)
+
+        self.name = self.config['name']
+        self.id = self.config['id']
+
         self.rdb = r.connect(
             host=self.config['db_host'],
             port=self.config['db_port']
@@ -25,12 +32,34 @@ class Commander:
         except RqlRuntimeError:
             print('App database already exists.')
 
+        self.rdb.close()
+
+        self.pool = ConnectionPool(
+            host=self.config['db_host'],
+            port=self.config['db_port'],
+            db="commander"
+        )
+
+
+    def pre_message(self):
+        try:
+            self.rdb = self.pool.acquire()
+        except RqlDriverError:
+            print("Could not connect to db")
+
+    def post_message(self):
+        self.pool.release(self.rdb)
+
+
     def process_message(self, message):
-        return self.parse_message(message['text'])
+        self.pre_message()
+        return_val = self.parse_message(message['text'])
+        self.post_message()
+        return return_val
 
     def parse_message(self, message):
         stripped_message = message.strip()
-        name_match = re.match(r'@?{}:?\s*(.*)'.format(self.name),
+        name_match = re.match(r'<@?{}>:?\s*(.*)'.format(self.id),
                               stripped_message,
                               flags=re.IGNORECASE)
         if name_match:
@@ -57,9 +86,9 @@ class Commander:
         # catches "for app-name" or "app-name"
         current_app_name = re.match(r'(?:for ?)(.*)', app_name)
         if not current_app_name:
-            return 'Hey, did you forget to include an application name'
-
-        # todo: make channel
+            return CREATE_INCIDENT_FAILED.render()
+        incident = Incident.create_new_incident(app_name)
+        incident.create_channel()
         # todo: say stuff in channel
         # todo: push empty document to database
-        return 'Created incident!'
+        return 'Created incident!: {}'.format(incident.name)
