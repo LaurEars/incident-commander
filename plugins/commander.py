@@ -11,6 +11,9 @@ commander = Commander(config)
 
 
 def process_message(data):
+    if config["DEBUG"]:
+        print(data)
+
     response = commander.process_message(data)
     if response:
         outputs.append([data['channel'], response])
