@@ -10,6 +10,7 @@ class Commander:
 
     def __init__(self, config):
         self.config = config
+        self.name = self.config['name']
         print(self.config)
         self.rdb = r.connect(
             host=self.config['db_host'],
@@ -28,13 +29,13 @@ class Commander:
 
     def parse_message(self, message):
         stripped_message = message.strip()
-        commander_match = re.match(r'commander\s*(.*)',
-                                   stripped_message,
-                                   flags=re.IGNORECASE)
-        if commander_match:
+        name_match = re.match(r'{}\s*(.*)'.format(self.name),
+                              stripped_message,
+                              flags=re.IGNORECASE)
+        if name_match:
             # parse message as incident commander message
             task_match = re.match(r'add task\s*(.*)',
-                                  commander_match.groups()[0],
+                                  name_match.groups()[0],
                                   flags=re.I)
             if task_match:
                 return self.add_task(task_match.groups()[0])
