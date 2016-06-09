@@ -87,7 +87,7 @@ class Commander:
         current_app_name = re.match(r'(?:for ?)(.*)', app_name)
         if not current_app_name:
             return CREATE_INCIDENT_FAILED.render()
-        incident = Incident(app_name)
+        incident = Incident.create_new_incident(app_name)
         incident.create_channel()
         # todo: say stuff in channel
         # todo: push empty document to database
