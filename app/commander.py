@@ -3,6 +3,8 @@ import re
 import rethinkdb as r
 from rethinkdb.errors import RqlRuntimeError, RqlDriverError
 
+from templates.responses import CREATE_INCIDENT_FAILED
+
 
 class Commander:
     """
@@ -12,6 +14,7 @@ class Commander:
     def __init__(self, config):
         self.config = config
         self.name = self.config['name']
+        self.id = self.config['id']
         print(self.config)
         self.rdb = r.connect(
             host=self.config['db_host'],
@@ -30,7 +33,7 @@ class Commander:
 
     def parse_message(self, message):
         stripped_message = message.strip()
-        name_match = re.match(r'@?{}:?\s*(.*)'.format(self.name),
+        name_match = re.match(r'<@?{}>:?\s*(.*)'.format(self.id),
                               stripped_message,
                               flags=re.IGNORECASE)
         if name_match:
@@ -57,7 +60,7 @@ class Commander:
         # catches "for app-name" or "app-name"
         current_app_name = re.match(r'(?:for ?)(.*)', app_name)
         if not current_app_name:
-            return 'Hey, did you forget to include an application name'
+            return CREATE_INCIDENT_FAILED.render()
 
         # todo: make channel
         # todo: say stuff in channel
