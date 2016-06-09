@@ -3,6 +3,7 @@ import re
 import rethinkdb as r
 from rethinkdb.errors import RqlRuntimeError, RqlDriverError
 
+
 class Commander:
     """
     Incident commander main class
