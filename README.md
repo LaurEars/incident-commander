@@ -7,5 +7,18 @@ Slack bot to manage incidents
 On OSX run the following:
 
 ```bash
+pyenv virtualenv 3.5.1 commander
+pyenv activate commander
+
+brew install rethinkdb
+
+pip install -r requirements.txt
+
 ```
+
+## Configuration
+
+## Running the Bot
+
+## Running the changefeed workers
 
