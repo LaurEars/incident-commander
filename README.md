@@ -2,11 +2,12 @@
 
 Slack bot to manage incidents
 
-## Setup 
+## Setup
 
 On OSX run the following:
 
 ```bash
+pyenv install 3.5.1
 pyenv virtualenv 3.5.1 commander
 pyenv activate commander
 
@@ -18,7 +19,14 @@ pip install -r requirements.txt
 
 ## Configuration
 
+Put the following into `rtmbot.conf`:
+
+```
+DEBUG: False
+
+SLACK_TOKEN: "xoxb-GET-YOUR-OWN"
+```
+
 ## Running the Bot
 
 ## Running the changefeed workers
-
