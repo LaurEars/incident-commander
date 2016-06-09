@@ -1,9 +1,27 @@
 import re
 
 import rethinkdb as r
+from rethinkdb.errors import RqlRuntimeError, RqlDriverError
 
+class Commander(object):
+    """
+    Incident commander main class
+    """
 
-class Commander:
+    def __init__(self, config):
+        self.config = config
+        print(self.config)
+        self.rdb = r.connect(
+            host=self.config['db_host'],
+            port=self.config['db_port']
+        )
+
+        try:
+            r.db_create("commander").run(self.rdb)
+            r.db("commander").table_create('incidents').run(self.rdb)
+            print('Database setup completed.')
+        except RqlRuntimeError:
+            print('App database already exists.')
 
     def process_message(self, message):
         return self.parse_message(message)
