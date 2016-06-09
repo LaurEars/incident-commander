@@ -9,7 +9,6 @@ commander = Commander()
 
 
 def process_message(data):
-
     response = commander.process_message(data)
     if response:
         outputs.append([data['channel'], response])
