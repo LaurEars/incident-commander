@@ -21,7 +21,7 @@ def process_message(data):
     channel = data["channel"]
     text = data["text"]
     # only accept tasks on DM channels
-    if channel.startswith("D"):
+    if channel:
         if channel not in tasks.keys():
             tasks[channel] = []
         # do command stuff
