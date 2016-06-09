@@ -17,7 +17,7 @@ class Incident:
     @staticmethod
     def create_new_incident(app_name):
         incident = Incident()
-        incident.start_date = datetime.date.today()
+        incident.start_date = datetime.datetime.now(r.make_timezone('-07:00'))
         incident.resolved_date = None
         incident.status = 'Identified'  # should be an enum-type thing
         incident.name = "{today_format}-{app_name}"\
@@ -45,3 +45,17 @@ class Incident:
     @staticmethod
     def get_incident(db_conn, id):
         return r.table('incidents').get(id).run(db_conn)
+
+    def save(self, db_conn):
+        r.table('incidents')\
+            .insert({'name': self.name,
+                     'status': self.status,
+                     'app': self.app,
+                     'severity': self.severity,
+                     'slack_channel': self.slack_channel,
+                     'description': self.description,
+                     'tasks': self.tasks,
+                     'start_date': r.expr(self.start_date),
+                     'resolved_date': self.resolved_date},
+                    conflict="update")\
+            .run(db_conn)
