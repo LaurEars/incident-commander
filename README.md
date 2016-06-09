@@ -25,6 +25,9 @@ Put the following into `rtmbot.conf`:
 DEBUG: False
 
 SLACK_TOKEN: "xoxb-GET-YOUR-OWN"
+
+db_host: "localhost"
+db_port: 28015
 ```
 
 ## Development

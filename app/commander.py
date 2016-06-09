@@ -3,7 +3,7 @@ import re
 import rethinkdb as r
 from rethinkdb.errors import RqlRuntimeError, RqlDriverError
 
-class Commander(object):
+class Commander:
     """
     Incident commander main class
     """
@@ -24,7 +24,7 @@ class Commander(object):
             print('App database already exists.')
 
     def process_message(self, message):
-        return self.parse_message(message)
+        return self.parse_message(message['text'])
 
     def parse_message(self, message):
         stripped_message = message.strip()
