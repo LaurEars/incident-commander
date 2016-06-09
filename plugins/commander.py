@@ -1,11 +1,13 @@
-from __future__ import unicode_literals
+import yaml
+
 from app.commander import Commander
-# don't convert to ascii in py2.7 when creating string to return
 
 crontable = []
 outputs = []
 
-commander = Commander()
+config = yaml.load(open('rtmbot.conf', 'r'))
+
+commander = Commander(config)
 
 
 def process_message(data):
