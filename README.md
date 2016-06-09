@@ -27,6 +27,14 @@ DEBUG: False
 SLACK_TOKEN: "xoxb-GET-YOUR-OWN"
 ```
 
+## Development
+
+To run `autopep8` on your code:
+
+```
+make pep8
+```
+
 ## Running the Bot
 
 ```

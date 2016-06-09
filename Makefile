@@ -2,4 +2,4 @@
 # Development
 ################################################################################
 pep8:
-	autopep8  plugins --in-place --recursive --verbose
+	autopep8 app plugins --in-place --recursive --verbose
