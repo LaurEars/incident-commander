@@ -29,4 +29,8 @@ SLACK_TOKEN: "xoxb-GET-YOUR-OWN"
 
 ## Running the Bot
 
+```
+python rtmbot.py
+```
+
 ## Running the changefeed workers
