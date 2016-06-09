@@ -1,5 +1,5 @@
 import datetime
-
+import rethinkdb as r
 
 class Incident:
     def __init__(self, app_name):
@@ -26,3 +26,7 @@ class Incident:
         # todo: create channel in slack - hopefully it doesn't already exist
         self.slack_channel = None
         # todo: update in db
+
+    @staticmethod
+    def get_incident(db_conn, id):
+        return r.table('incidents').get(id).run(db_conn)
