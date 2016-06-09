@@ -93,6 +93,4 @@ class Commander:
         incident = Incident.create_new_incident(current_app_name.groups()[0])
         incident.create_channel()
         incident.save(self.rdb)
-        # todo: say stuff in channel
-        # todo: push empty document to database
         return 'Created incident!: {}'.format(incident.name)
