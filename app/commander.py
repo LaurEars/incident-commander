@@ -64,18 +64,21 @@ class Commander:
                               flags=re.IGNORECASE)
         if name_match:
             commands = name_match.groups()[0]
-            # parse message as incident commander message
-            task_match = re.match(r'add task\s*(.*)', commands, flags=re.I)
-            if task_match:
-                return self.add_task(task_match.groups()[0])
+            return self.parse_commands(commands)
 
-            create_incident = re.match(r'create[ -]incident\s*(.*)',
-                                       commands,
-                                       flags=re.I)
-            if create_incident:
-                # begin workflow for creating incident
-                return self.create_incident(create_incident.groups()[0])
-            return 'no match for this command'
+    def parse_commands(self, commands):
+        # parse message as incident commander message
+        task_match = re.match(r'add task\s*(.*)', commands, flags=re.I)
+        if task_match:
+            return self.add_task(task_match.groups()[0])
+
+        create_incident = re.match(r'create[ -]incident\s*(.*)',
+                                   commands,
+                                   flags=re.I)
+        if create_incident:
+            # begin workflow for creating incident
+            return self.create_incident(create_incident.groups()[0])
+        return 'no match for this command'
 
     def add_task(self, task):
         # todo: add task to task list
