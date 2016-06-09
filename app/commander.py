@@ -30,7 +30,7 @@ class Commander:
 
     def parse_message(self, message):
         stripped_message = message.strip()
-        name_match = re.match(r'{}\s*(.*)'.format(self.name),
+        name_match = re.match(r'@?{}:?\s*(.*)'.format(self.name),
                               stripped_message,
                               flags=re.IGNORECASE)
         if name_match:
