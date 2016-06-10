@@ -13,7 +13,8 @@ class Incident:
         self.severity = None
         self.slack_channel = None
         self.description = None
-        self.tasks = []
+        self.steps = []
+        self.symptoms = []
         self.config = None
 
     @staticmethod
@@ -29,7 +30,7 @@ class Incident:
         incident.severity = None  # should be another enum-like thing
         incident.slack_channel = None
         incident.description = None
-        incident.tasks = []
+        incident.steps = []
         incident.leader = None
         incident.config = config
         # todo: add rest of attributes from planning session
@@ -50,11 +51,11 @@ class Incident:
         incident.severity = result['severity']
         incident.slack_channel = result['slack_channel']
         incident.description = result['description']
-        incident.tasks = result['tasks']
+        incident.steps = result['steps']
         return incident
 
     def add_task(self, task):
-        self.tasks.append(task)
+        self.steps.append(task)
         # todo: needs some database saving stuff
 
     def create_channel(self):
@@ -66,6 +67,7 @@ class Incident:
             self.name = resp['channel']['name']
             channels.join(self.slack_channel, self.config)
             channels.post(self.slack_channel, self.config, NEW_CHANNEL_MESSAGE.render())
+
         except ValueError as err:
             print(err)
 
@@ -84,7 +86,7 @@ class Incident:
                      'severity': self.severity,
                      'slack_channel': self.slack_channel,
                      'description': self.description,
-                     'tasks': self.tasks,
+                     'steps': self.steps,
                      'start_date': r.expr(self.start_date),
                      'resolved_date': self.resolved_date},
                     conflict="update")\

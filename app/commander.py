@@ -10,8 +10,8 @@ from templates.responses import (CREATE_INCIDENT_FAILED, SET, GET, GET_LIST, NAG
 LIST_FIELDS = [
     'symptom',
     'hypothesis',
-    'comment',
-    'step',
+    'comments',
+    'steps',
     'tasks'
 ]
 
