@@ -15,6 +15,8 @@ When you have a moment, please use these commands to provide more information:
 """)
 CREATE_INCIDENT_FAILED = Template("Hey, did you forget to include an application name?")  # noqa
 
+NAG = Template("Be a dear and run `@commander set {{key}} <value>`")
+
 SET = Template("Set *{{field}}* to `{{value}}`")
 GET = Template("*{{field}}*: {{value}}")
 
