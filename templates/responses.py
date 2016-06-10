@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from jinja2 import Template
 
 CREATE_INCIDENT = Template("""
@@ -77,6 +80,30 @@ NEW_CHANNEL_MESSAGE = Template("""
    6. Mitigate the problem.
 *Full Incident Response Instructions:* https://zefrinc.atlassian.net/wiki/display/ST/Incident+Response+Instructions
 """)
+
+
+SET_SEVERITY_PROMPT = Template("""
+*Set incident severity!*
+
+This incident is now being tracked and documented, but we still need your help!
+
+*The available severity levels are:*
+    • S1 (critical)
+    • S2 (major)
+    • S3 (minor)
+
+Consider the following in setting severity:
+    • App is down and teams can no longer function
+    • Business cost
+    • SLA (Service Level Agreement) in danger of violation
+    • Technical impact
+
+To set severity, use the command:
+```
+@commander set severity <1-3>
+```
+""")
+
 
 def renderField(field, value):
     customRenderers = {
