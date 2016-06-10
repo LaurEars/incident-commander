@@ -14,4 +14,10 @@ CREATE_INCIDENT_FAILED = Template("Hey, did you forget to include an application
 SET = Template("Set {{field}} to {{value}}")
 GET = Template("{{field}} is: {{value}}")
 
-# TODO: Add more
+GET_LIST = Template(
+"""
+*{{field}}:*
+{% for val in value %}
+    {{loop.index}}: {{val}}
+{% endfor %}
+""")

@@ -5,7 +5,7 @@ from repool import ConnectionPool
 from rethinkdb.errors import RqlRuntimeError, RqlDriverError
 
 from app.incident import Incident
-from templates.responses import (CREATE_INCIDENT_FAILED, SET, GET)
+from templates.responses import (CREATE_INCIDENT_FAILED, SET, GET, GET_LIST)
 
 
 class CommanderBase:
@@ -129,5 +129,9 @@ class Commander(CommanderBase):
         document = r.table('incidents')\
             .filter({'slack_channel': channel})\
             .run(self.rdb)
-        d = document.next()
-        return GET.render(field=field, value=d.get(field))
+        val = document.next().get(field)
+
+        # Use the list template if value is a list, else just return regularly
+        if isinstance(val, list):
+            return GET_LIST.render(field=field, value=val)
+        return GET.render(field=field, value=val)
