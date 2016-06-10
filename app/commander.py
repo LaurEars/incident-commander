@@ -5,7 +5,7 @@ from repool import ConnectionPool
 from rethinkdb.errors import RqlRuntimeError, RqlDriverError
 
 from app.incident import Incident
-from templates.responses import CREATE_INCIDENT_FAILED
+from templates.responses import (CREATE_INCIDENT_FAILED, SET, GET)
 
 
 class CommanderBase:
@@ -120,10 +120,11 @@ class Commander(CommanderBase):
             .filter({'channel': channel})\
             .update({field: value})\
             .run(self.rdb)
-        return "Set {} to {}".format(field, value)
+        return SET.render(field=field, value=value)
 
     def get_field(self, channel, field):
         document = r.table('incidents')\
             .filter({'channel': channel})\
             .run(self.rdb)
-        return document.next().get(field)
+        d = document.next()
+        return GET.render(field=field, value=d.get(field))
