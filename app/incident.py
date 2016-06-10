@@ -55,7 +55,7 @@ class Incident:
         incident.slack_channel = result.get('slack_channel')
         incident.description = result.get('description')
         incident.steps = result.get('steps')
-        incident.symtpom = result.get('symptom')
+        incident.symptom = result.get('symptom')
         return incident
 
     def add_task(self, task):

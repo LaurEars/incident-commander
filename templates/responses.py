@@ -45,12 +45,17 @@ _Ended_: *{{resolved_date}}*
 _Description_:
 ``` {{description}} ```
 
-{% if symptoms %}
+{% if symptom %}
 _Symptoms_:
 ```
-{% for s in symptom %}
-    {{loop.index}}: {{s}}
-{% endfor %}
+>>> {% for val in symptom -%}
+{{loop.index}}. {% if val is iterable -%}
+        {% if val.removed is sameas false %} {{val.text}}
+        {%- else %} ~{{val.text}}~ {% endif %} (<@{{val.user}}>)
+{% else -%}
+         {{val}}
+    {% endif %}
+{%- endfor %}
 ```
 {% endif %}
 

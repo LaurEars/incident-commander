@@ -107,7 +107,6 @@ class Commander(CommanderBase):
         super(Commander, self).__init__(*args, **kwargs)
 
     def parse_commands(self, commands, channel, user):
-        print(user)
         # Run down a big old list of short-circuiting ifs to determine
         # which command was called
         create_incident = re.match(r'create[ -]incident\s*(.*)',
@@ -120,7 +119,6 @@ class Commander(CommanderBase):
         summary_match = re.match(r'summary\s*(.*)', commands, flags=re.I)
         if summary_match:
             incident = Incident.get_incident_by_channel(self.rdb, channel)
-            print(incident.summarize())
             return incident.summarize()
 
         set_match = re.match(
