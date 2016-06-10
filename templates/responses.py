@@ -11,13 +11,15 @@ When you have a moment, please use these commands to provide more information:
 """)
 CREATE_INCIDENT_FAILED = Template("Hey, did you forget to include an application name?")
 
-SET = Template("Set {{field}} to {{value}}")
-GET = Template("{{field}} is: {{value}}")
+SET = Template("Set *{{field}}* to `{{value}}`")
+GET = Template("*{{field}}*: {{value}}")
 
 GET_LIST = Template(
 """
 *{{field}}:*
+```
 {% for val in value %}
     {{loop.index}}: {{val}}
 {% endfor %}
+```
 """)
