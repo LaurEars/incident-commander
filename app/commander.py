@@ -6,12 +6,12 @@ from rethinkdb.errors import RqlRuntimeError, RqlDriverError
 
 from app.incident import Incident
 from templates.responses import (
-    CREATE_INCIDENT_FAILED, SET, GET, GET_LIST, NAG)
+    CREATE_INCIDENT_FAILED, SET, GET, GET_LIST, NAG, SET_SEVERITY_PROMPT)
 
 LIST_FIELDS = [
     'symptom',
     'hypothesis',
-    'comments',
+    'comment',
     'steps',
     'tasks'
 ]
@@ -78,7 +78,12 @@ class CommanderBase:
         if not self.valid_message(message):
             return ""
 
-        stripped_message = message['text'].strip()
+        stripped_message = message.get('text')
+        if stripped_message is None:
+            return ""
+        else:
+            stripped_message = stripped_message.strip()
+
         name_match = re.match(r'<@?{}>:?\s*(.*)'.format(self.id),
                               stripped_message,
                               flags=re.IGNORECASE)
@@ -102,7 +107,6 @@ class Commander(CommanderBase):
         super(Commander, self).__init__(*args, **kwargs)
 
     def parse_commands(self, commands, channel, user):
-        print(user)
         # Run down a big old list of short-circuiting ifs to determine
         # which command was called
         create_incident = re.match(r'create[ -]incident\s*(.*)',
@@ -156,7 +160,7 @@ class Commander(CommanderBase):
 
         incident = Incident.get_incident_by_channel(self.rdb, channel)
         try:
-            incident[field] = value
+            setattr(incident, field, value)
             incident.save(self.rdb)
         except KeyError:
             return "{} is not a field that exists on an incident".format(field)
@@ -164,7 +168,7 @@ class Commander(CommanderBase):
 
     def get_field(self, channel, field):
         incident = Incident.get_incident_by_channel(self.rdb, channel)
-        val = incident.get(field)
+        val = getattr(incident, field)
 
         # Use the list template if value is a list, else just return regularly
         if isinstance(val, list):

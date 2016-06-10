@@ -1,9 +1,8 @@
 import datetime
+import json
 import rethinkdb as r
 import app.channels as channels
-from templates.responses import NEW_CHANNEL_MESSAGE
-import json
-
+from templates.responses import NEW_CHANNEL_MESSAGE, SUMMARY
 
 class Incident:
 
@@ -16,8 +15,10 @@ class Incident:
         self.severity = None
         self.slack_channel = None
         self.description = None
+        self.leader = None
         self.steps = []
-        self.symptoms = []
+        self.symptom = []
+        self.comment = []
         self.config = None
 
     @staticmethod
@@ -46,15 +47,17 @@ class Incident:
             .filter({'slack_channel': slack_channel})\
             .run(db_conn).next()
         incident = Incident()
-        incident.start_date = result['start_date']
-        incident.resolved_date = result['resolved_date']
-        incident.status = result['status']
-        incident.name = result['name']
-        incident.app = result['app']
-        incident.severity = result['severity']
-        incident.slack_channel = result['slack_channel']
-        incident.description = result['description']
+        incident.start_date = result.get('start_date')
+        incident.resolved_date = result.get('resolved_date')
+        incident.status = result.get('status')
+        incident.name = result.get('name')
+        incident.app = result.get('app')
+        incident.severity = result.get('severity')
+        incident.slack_channel = result.get('slack_channel')
+        incident.description = result.get('description')
         incident.steps = result.get('steps')
+        incident.symptom = result.get('symptom')
+        incident.comment = result.get('comment')
         incident.data = result
         return incident
 
@@ -76,8 +79,19 @@ class Incident:
         except ValueError as err:
             print(err)
 
+
     def summarize(self):
         """Returns a summary of the incident"""
+        return SUMMARY.render(
+            name=self.name,
+            status=self.status,
+            severity=self.severity,
+            start_date=self.start_date,
+            resolved_date=self.resolved_date,
+            description=self.description,
+            steps=self.steps,
+            symptom=self.symptom
+        )
 
     @staticmethod
     def get_incident(db_conn, id):
@@ -91,6 +105,7 @@ class Incident:
                      'severity': self.severity,
                      'slack_channel': self.slack_channel,
                      'description': self.description,
+                     'leader': self.leader,
                      'steps': self.steps,
                      'start_date': r.expr(self.start_date),
                      'resolved_date': self.resolved_date},
