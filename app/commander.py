@@ -6,23 +6,7 @@ from rethinkdb.errors import RqlRuntimeError, RqlDriverError
 
 from app.incident import Incident, LIST_FIELDS, CRITICAL_FIELDS
 from templates.responses import (
-    CREATE_INCIDENT_FAILED, SET, GET, GET_LIST, NAG, SET_SEVERITY_PROMPT)
-
-
-LIST_FIELDS = [
-    'symptom',
-    'hypothesis',
-    'comment',
-    'steps',
-    'tasks'
-]
-
-CRITICAL_FIELDS = [
-    'description',
-    'status',
-    'severity',
-    'leader'
-]
+    CREATE_INCIDENT_FAILED, SET, GET, GET_LIST, NAG)
 
 
 class CommanderBase:
