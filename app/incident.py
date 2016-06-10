@@ -97,11 +97,11 @@ class Incident:
             channels.post(self.slack_channel, self.config,
                           NEW_CHANNEL_MESSAGE.render())
 
-            requests.get('http://172.29.30.161/events/sev-1-start') # Hit the lights!
+            # Hit the lights!
+            requests.get('http://172.29.30.161/events/sev-1-start')
 
         except ValueError as err:
             print(err)
-
 
     def summarize(self):
         """Returns a summary of the incident"""
@@ -152,7 +152,6 @@ class Incident:
         else:
             return field.capitalize()
 
-
     def _format_value_for_field(self, field_value):
         def _get_text(f):
             if isinstance(f, str):
@@ -180,7 +179,6 @@ class Incident:
                 'short': field_name in short_fields
             }
 
-
         attachments = [
             {
                 'mrkdwn_in': ['text', 'fields'],
@@ -207,10 +205,12 @@ class Incident:
             }
         ]
         print(attachments)
-        channels.post(self.slack_channel, config=config, message='*Incident Summary*', attachments=json.dumps(attachments))
+        channels.post(self.slack_channel, config=config,
+                      message='*Incident Summary*', attachments=json.dumps(attachments))
 
     def resolve(self, channel, db_conn):
         r.table('incidents').get(channel)\
             .update({'resolved': True}).run(db_conn)
-        requests.get('http://172.29.30.161/events/sev-1-end') # Hit the lights!
+        # Hit the lights!
+        requests.get('http://172.29.30.161/events/sev-1-end')
         return "Incident Resolved!"
