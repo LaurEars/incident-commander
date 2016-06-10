@@ -46,6 +46,12 @@ make pep8
 
 ## Running the Bot
 
+In one terminal, run:
+```
+rethinkdb
+```
+
+In another terminal, run:
 ```
 python rtmbot.py
 ```

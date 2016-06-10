@@ -135,6 +135,8 @@ class Commander(CommanderBase):
             .filter({'slack_channel': channel}) \
             .run(self.rdb)
         d = document.next()
-        d = r.table('incidents') \
-            .get(d['id'])[field].append(value).run(self.rdb)
+        d = r.table('incidents').get(d['id']).update({
+            field: r.row[field].append(value)
+        }).run(self.rdb)
+
         return SET.render(field=field, value=value)
