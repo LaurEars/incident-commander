@@ -95,13 +95,12 @@ class Commander:
 
     def create_incident(self, app_name):
         # catches "for app-name" or "app-name"
-        current_app_name = re.match(r'(?:for ?)(.*)', app_name)
+        current_app_name = re.match(r'(?:for\s+)?(.*)', app_name)
         if not current_app_name:
             return CREATE_INCIDENT_FAILED.render()
-        incident = Incident.create_new_incident(app_name)
+        incident = Incident.create_new_incident(current_app_name.groups()[0])
         incident.create_channel()
-        # todo: say stuff in channel
-        # todo: push empty document to database
+        incident.save(self.rdb)
         return 'Created incident!: {}'.format(incident.name)
 
     def set_field(self, channel, field, value):
