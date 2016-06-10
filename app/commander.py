@@ -28,7 +28,9 @@ class CommanderBase:
 
         try:
             r.db_create(self.db_name).run(self.rdb)
-            r.db(self.db_name).table_create('incidents').run(self.rdb)
+            r.db(self.db_name)\
+                .table_create('incidents', primary_key='slack_channel')\
+                .run(self.rdb)
             print('Database setup completed.')
         except RqlRuntimeError:
             print('App database already exists.')
@@ -144,3 +146,29 @@ class Commander(CommanderBase):
         }).run(self.rdb)
 
         return SET.render(field=field, value=value)
+
+    # Periodic update functions
+    def nag(self):
+        self.pre_message()
+        response = []
+        incidents = r.table('incidents').run(self.rdb)
+        for incident in incidents:
+            channel = incident.get('slack_channel')
+            message = ""
+            for key in incident:
+                if incident.get(key) is None:
+                    message = "{}\n{}".format(message, NAG.render(key=key))
+            response.append([channel, message])
+        self.post_message()
+        return response
+
+    def update(self):
+        self.pre_message()
+        response = []
+        incidents = r.table('incidents').run(self.rdb)
+        for incident in incidents:
+            channel = incident.get('slack_channel') # This will just return to the incident channel, thoughts?
+            message = "" # This should be the summary!
+            response.append([channel, message])
+        self.post_message()
+        return response
