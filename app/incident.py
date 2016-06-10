@@ -188,10 +188,12 @@ class Incident:
                 'short': field_name in short_fields
             }
 
+
+
         attachments = [
             {
                 'mrkdwn_in': ['text', 'fields'],
-                'color': 'danger',
+                'color': 'danger' if not self.status == 'resolved' else 'good',
                 'title': self.name,
                 'text': self.description,
                 'fields': [i for i in [
@@ -219,7 +221,7 @@ class Incident:
 
     def resolve(self, channel, db_conn):
         r.table('incidents').get(channel)\
-            .update({'resolved': True}).run(db_conn)
+            .update({'resolved': True, 'status': 'resolved'}).run(db_conn)
         # Hit the lights!
         requests.get('http://172.29.30.161/events/sev-1-end')
         return "Incident Resolved!"
