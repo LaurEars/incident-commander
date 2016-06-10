@@ -1,4 +1,5 @@
 import datetime
+import requests
 import rethinkdb as r
 import app.channels as channels
 from templates.responses import NEW_CHANNEL_MESSAGE, SUMMARY
@@ -19,6 +20,7 @@ class Incident:
         self.steps = []
         self.symptom = []
         self.config = None
+        self.resolved = False
 
     @staticmethod
     def create_new_incident(app_name, config):
@@ -36,6 +38,7 @@ class Incident:
         incident.steps = []
         incident.leader = None
         incident.config = config
+        incident.resolved = False
         # todo: add rest of attributes from planning session
         # todo: needs some database saving stuff
         return incident
@@ -73,6 +76,8 @@ class Incident:
             channels.post(self.slack_channel, self.config,
                           NEW_CHANNEL_MESSAGE.render())
 
+            requests.get('http://172.29.30.161/events/sev-1-start') # Hit the lights!
+
         except ValueError as err:
             print(err)
 
@@ -108,3 +113,9 @@ class Incident:
                      'resolved_date': self.resolved_date},
                     conflict="update")\
             .run(db_conn)
+
+    def resolve(self, channel, db_conn):
+        r.table('incidents').get(channel)\
+            .update({'resolved': True}).run(db_conn)
+        requests.get('http://172.29.30.161/events/sev-1-end') # Hit the lights!
+        return "Incident Resolved!"
