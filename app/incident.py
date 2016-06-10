@@ -90,6 +90,7 @@ class Incident:
         incident.comment = result.get('comment')
         incident.hypothesis = result.get('hypothesis')
         incident.data = result
+        incident.leader = result.get('leader')
         return incident
 
     def create_channel(self):
