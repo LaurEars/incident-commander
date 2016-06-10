@@ -6,7 +6,7 @@ from rethinkdb.errors import RqlRuntimeError, RqlDriverError
 
 from app.incident import Incident
 from templates.responses import (
-    CREATE_INCIDENT_FAILED, SET, GET, GET_LIST, NAG)
+    CREATE_INCIDENT_FAILED, SET, GET, GET_LIST, NAG, SET_SEVERITY_PROMPT)
 
 LIST_FIELDS = [
     'symptom',
