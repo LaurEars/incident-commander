@@ -176,6 +176,7 @@ class Commander(CommanderBase):
             d = d.next()
         except ReqlCursorEmpty:
             return "Cant Find Incident"
+            
         r.table('incidents').filter({'slack_channel': channel}).update({
             field: r.row[field].default([]).append({
                 'ts': r.now(),

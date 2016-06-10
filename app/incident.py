@@ -71,8 +71,10 @@ class Incident:
         try:
             result = result.next()
         except ReqlCursorEmpty:
-            return "Cant Find Incident"
-            
+            i = Incident()
+            i.name = "Cant Find Incident"
+            return i
+
         incident = Incident()
         incident.start_date = result.get('start_date')
         incident.resolved_date = result.get('resolved_date')
