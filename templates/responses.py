@@ -22,11 +22,17 @@ GET = Template("*{{field}}*: {{value}}")
 
 GET_LIST = Template("""
 *{{field}}:*
-```
 {% for val in value %}
-    {{loop.index}}: {{val}}
+>    {{loop.index}}: {% if val is iterable -%}
+        {% if val.removed is sameas false -%}
+            {{val.text}}
+        {% else %}
+            ~{{val.text}}~
+        {%- endif %} (<{{val.user}}>)
+    {% else %}
+         {{val}}
+    {%- endif %}
 {% endfor %}
-```
 """)
 
 NEW_CHANNEL_MESSAGE = Template("""
@@ -44,3 +50,18 @@ NEW_CHANNEL_MESSAGE = Template("""
    6. Mitigate the problem.
 *Full Incident Response Instructions:* https://zefrinc.atlassian.net/wiki/display/ST/Incident+Response+Instructions
 """)
+
+def renderField(field, value):
+    customRenderers = {
+        'start_date': RENDER_DATE,
+        'resolved_date': RENDER_DATE,
+        'hypothesis': RENDER_HYPOTHESIS,
+        'comment': RENDER_COMPLEX_LIST,
+        'step': RENDER_COMPLEX_LIST
+    }
+    if field in customRenderers:
+        return customRenderers[field].render(field=field, value=value)
+    elif isinstance(value, list):
+        return GET_LIST.render(field=field, value=value)
+    else:
+        return GET.render(field=field, value=value)

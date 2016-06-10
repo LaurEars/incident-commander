@@ -30,6 +30,7 @@ class Incident:
         incident.slack_channel = None
         incident.description = None
         incident.tasks = []
+        incident.leader = None
         incident.config = config
         # todo: add rest of attributes from planning session
         # todo: needs some database saving stuff
@@ -67,6 +68,9 @@ class Incident:
             channels.post(self.slack_channel, self.config, NEW_CHANNEL_MESSAGE.render())
         except ValueError as err:
             print(err)
+
+    def summarize(self):
+        """Returns a summary of the incident"""
 
     @staticmethod
     def get_incident(db_conn, id):
