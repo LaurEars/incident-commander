@@ -11,6 +11,7 @@ When you have a moment, please use these commands to provide more information:
 """)
 CREATE_INCIDENT_FAILED = Template("Hey, did you forget to include an application name?")
 
-TITLE = Template("Title set to {{ title }}")
+SET = Template("Set {{field}} to {{value}}")
+GET = Template("{{field}} is: {{value}}")
 
 # TODO: Add more

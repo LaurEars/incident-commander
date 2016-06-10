@@ -5,7 +5,7 @@ from repool import ConnectionPool
 from rethinkdb.errors import RqlRuntimeError, RqlDriverError
 
 from app.incident import Incident
-from templates.responses import CREATE_INCIDENT_FAILED
+from templates.responses import (CREATE_INCIDENT_FAILED, SET, GET)
 
 
 class CommanderBase:
@@ -66,6 +66,9 @@ class CommanderBase:
         if name_match:
             commands = name_match.groups()[0]
             return self.parse_commands(commands, channel=message['channel'])
+        if message['channel'].startswith('D'):
+            return self.parse_commands(stripped_message,
+                                       channel=message['channel'])
 
     def parse_commands(self, commands, channel):
         return NotImplementedError
@@ -90,11 +93,11 @@ class Commander(CommanderBase):
             # begin workflow for creating incident
             return self.create_incident(create_incident.groups()[0])
 
-        set_match = re.match(r'set[ -]([A-Za-z]+)\s*(.*)', commands, flags=re.I)
+        set_match = re.match(r'set[ -]([A-Za-z_]+)\s*(.*)', commands, flags=re.I)
         if set_match:
             return self.set_field(channel, *set_match.groups())
 
-        get_match = re.match(r'get[ -]([A-Za-z]+)\s*(.*)', commands, flags=re.I)
+        get_match = re.match(r'get[ -]([A-Za-z_]+)\s*(.*)', commands, flags=re.I)
         if get_match:
             return self.get_field(channel, get_match.groups()[0])
 
@@ -117,13 +120,14 @@ class Commander(CommanderBase):
 
     def set_field(self, channel, field, value):
         r.table('incidents')\
-            .filter({'channel': channel})\
+            .filter({'slack_channel': channel})\
             .update({field: value})\
             .run(self.rdb)
-        return "Set {} to {}".format(field, value)
+        return SET.render(field=field, value=value)
 
     def get_field(self, channel, field):
         document = r.table('incidents')\
-            .filter({'channel': channel})\
+            .filter({'slack_channel': channel})\
             .run(self.rdb)
-        return document.next().get(field)
+        d = document.next()
+        return GET.render(field=field, value=d.get(field))
