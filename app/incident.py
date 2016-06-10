@@ -138,7 +138,8 @@ class Incident:
                     conflict="update")\
             .run(db_conn)
 
-    def _format_title_for_field(self, field):
+    @staticmethod
+    def _format_title_for_field(field):
         titles = {
             'status': 'Current Status',
             'symptom': 'Symptoms',
@@ -152,7 +153,8 @@ class Incident:
         else:
             return field.capitalize()
 
-    def _format_value_for_field(self, field_value):
+    @staticmethod
+    def _format_value_for_field(field_value):
         def _get_text(f):
             if isinstance(f, str):
                 return f
@@ -174,8 +176,8 @@ class Incident:
         formatted_fields = {}
         for field_name, field_value in self.data.items():
             formatted_fields[field_name] = {
-                'title': self._format_title_for_field(field_name),
-                'value': self._format_value_for_field(field_value),
+                'title': Incident._format_title_for_field(field_name),
+                'value': Incident._format_value_for_field(field_value),
                 'short': field_name in short_fields
             }
 
