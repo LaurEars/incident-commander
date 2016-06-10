@@ -2,7 +2,7 @@ import re
 
 import rethinkdb as r
 from repool import ConnectionPool
-from rethinkdb.errors import RqlRuntimeError, RqlDriverError
+from rethinkdb.errors import RqlRuntimeError, RqlDriverError, ReqlCursorEmpty
 
 from app.incident import Incident, LIST_FIELDS, CRITICAL_FIELDS
 from templates.responses import (
@@ -172,7 +172,11 @@ class Commander(CommanderBase):
 
         d = r.table('incidents').filter(
             {'slack_channel': channel}).run(self.rdb)
-        d = d.next()
+        try:
+            d = d.next()
+        except ReqlCursorEmpty:
+            return "Cant Find Incident"
+            
         r.table('incidents').filter({'slack_channel': channel}).update({
             field: r.row[field].default([]).append({
                 'ts': r.now(),
