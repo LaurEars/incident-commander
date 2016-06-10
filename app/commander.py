@@ -94,6 +94,10 @@ class Commander(CommanderBase):
         if set_match:
             return self.set_field(channel, *set_match.groups())
 
+        get_match = re.match(r'get[ -]([A-Za-z]+)\s*(.*)', commands, flags=re.I)
+        if get_match:
+            return self.get_field(channel, get_match.groups()[0])
+
         return 'no match for this command'
 
     def add_task(self, task):
@@ -121,5 +125,5 @@ class Commander(CommanderBase):
     def get_field(self, channel, field):
         document = r.table('incidents')\
             .filter({'channel': channel})\
-            .run()
-        return document.get(field)
+            .run(self.rdb)
+        return document.next().get(field)
