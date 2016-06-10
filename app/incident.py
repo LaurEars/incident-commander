@@ -5,6 +5,22 @@ import rethinkdb as r
 import app.channels as channels
 from templates.responses import NEW_CHANNEL_MESSAGE, SUMMARY
 
+
+LIST_FIELDS = [
+    'symptom',
+    'hypothesis',
+    'comments',
+    'steps',
+    'tasks'
+]
+CRITICAL_FIELDS = [
+    'description',
+    'status',
+    'severity',
+    'leader'
+]
+
+
 class Incident:
 
     def __init__(self):

@@ -1,13 +1,13 @@
 import re
-import requests
 
 import rethinkdb as r
 from repool import ConnectionPool
 from rethinkdb.errors import RqlRuntimeError, RqlDriverError
 
-from app.incident import Incident
+from app.incident import Incident, LIST_FIELDS, CRITICAL_FIELDS
 from templates.responses import (
     CREATE_INCIDENT_FAILED, SET, GET, GET_LIST, NAG, SET_SEVERITY_PROMPT)
+
 
 LIST_FIELDS = [
     'symptom',
@@ -183,7 +183,8 @@ class Commander(CommanderBase):
 
     def add_field(self, channel, user, field, value):
         if field not in LIST_FIELDS:
-            return '`add` commands can only be used with one of the following: {}'.format(', '.join(LIST_FIELDS))
+            return '`add` commands can only be used with one of the following: {}'.format(', '.join(
+                LIST_FIELDS))
 
         d = r.table('incidents').filter(
             {'slack_channel': channel}).run(self.rdb)
@@ -201,7 +202,8 @@ class Commander(CommanderBase):
 
     def remove_field(self, channel, field, display_index):
         if field not in LIST_FIELDS:
-            return '`remove` commands can only be used with one of the following: {}'.format(', '.join(LIST_FIELDS))
+            return '`remove` commands can only be used with one of the following: {}'.format(', '.join(
+                LIST_FIELDS))
 
         # lists are numbered starting from 1, not 0, so subract 1 for the real
         # index
