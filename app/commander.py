@@ -19,6 +19,7 @@ class Commander:
 
         self.name = self.config['name']
         self.id = self.config['id']
+        self.db_name = self.config['db_name']
 
         self.rdb = r.connect(
             host=self.config['db_host'],
@@ -26,8 +27,8 @@ class Commander:
         )
 
         try:
-            r.db_create("commander").run(self.rdb)
-            r.db("commander").table_create('incidents').run(self.rdb)
+            r.db_create(self.db_name).run(self.rdb)
+            r.db(self.db_name).table_create('incidents').run(self.rdb)
             print('Database setup completed.')
         except RqlRuntimeError:
             print('App database already exists.')
@@ -37,7 +38,7 @@ class Commander:
         self.pool = ConnectionPool(
             host=self.config['db_host'],
             port=self.config['db_port'],
-            db="commander"
+            db=self.db_name
         )
 
 
@@ -53,21 +54,23 @@ class Commander:
 
     def process_message(self, message):
         self.pre_message()
-        return_val = self.parse_message(message['text'])
+        return_val = self.parse_message(message)
         self.post_message()
         return return_val
 
     def parse_message(self, message):
-        stripped_message = message.strip()
+        stripped_message = message['text'].strip()
         name_match = re.match(r'<@?{}>:?\s*(.*)'.format(self.id),
                               stripped_message,
                               flags=re.IGNORECASE)
         if name_match:
             commands = name_match.groups()[0]
-            return self.parse_commands(commands)
+            return self.parse_commands(commands, channel=message['channel'])
 
-    def parse_commands(self, commands):
-        # parse message as incident commander message
+    def parse_commands(self, commands, channel):
+        # Run down a big old list of short-circuiting ifs to determine
+        # which command was called
+
         task_match = re.match(r'add task\s*(.*)', commands, flags=re.I)
         if task_match:
             return self.add_task(task_match.groups()[0])
@@ -78,6 +81,11 @@ class Commander:
         if create_incident:
             # begin workflow for creating incident
             return self.create_incident(create_incident.groups()[0])
+
+        set_match = re.match(r'set[ -]([A-Za-z]+)\s*(.*)', commands, flags=re.I)
+        if set_match:
+            return self.set_field(channel, *set_match.groups())
+
         return 'no match for this command'
 
     def add_task(self, task):
@@ -95,3 +103,9 @@ class Commander:
         # todo: say stuff in channel
         # todo: push empty document to database
         return 'Created incident!: {}'.format(incident.name)
+
+    def set_field(self, channel, field, value):
+        r.table('incidents')\
+            .filter({'channel': channel})\
+            .update({field: value})\
+            .run(self.rdb)
