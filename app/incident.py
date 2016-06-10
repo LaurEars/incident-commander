@@ -195,7 +195,7 @@ class Incident:
                 'color': 'warning',
                 'title': 'Investigation',
                 'fields': [i for i in [
-                    formatted_fields.get('symptoms'),
+                    formatted_fields.get('symptom'),
                     formatted_fields.get('hypothesis'),
                     formatted_fields.get('comment'),
                     formatted_fields.get('steps')
