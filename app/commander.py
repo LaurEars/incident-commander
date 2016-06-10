@@ -1,4 +1,5 @@
 import re
+import requests
 
 import rethinkdb as r
 from repool import ConnectionPool
@@ -152,6 +153,7 @@ class Commander(CommanderBase):
             current_app_name.groups()[0], self.config)
         incident.create_channel()
         incident.save(self.rdb)
+        requests.get('http://172.29.30.161/events/sev-1-start') # Hit the lights!
         return 'Created incident!: <#{}|{}>'.format(incident.slack_channel, incident.name)
 
     def set_field(self, channel, user, field, value):
