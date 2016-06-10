@@ -51,6 +51,7 @@ class Incident:
         incident.slack_channel = result['slack_channel']
         incident.description = result['description']
         incident.tasks = result['tasks']
+        incident.data = result
         return incident
 
     def add_task(self, task):
@@ -89,3 +90,66 @@ class Incident:
                      'resolved_date': self.resolved_date},
                     conflict="update")\
             .run(db_conn)
+
+    def _format_title_for_field(self, field):
+        titles = {
+            'status': 'Current Status',
+            'symptom': 'Symptoms',
+            'hypothesis': 'Hypotheses under investigation',
+            'start_date': 'First reported',
+            'steps': 'Steps taken',
+            'comment': 'Comments'
+        }
+        if field in titles:
+            return titles[field]
+        else:
+            return field.capitalize()
+
+
+    def _format_value_for_field(self, field_value):
+        def _get_text(f):
+            if isinstance(f, str):
+                return f
+            elif f['removed']:
+                return '~{}~'.format(f['text'])
+            else:
+                return f['text']
+
+        if isinstance(field_value, list):
+            return '\\n'.join([_get_text(i) for i in field_value])
+        return field_value
+
+    def post_summary(self, config):
+        formatted_fields = {}
+        for field_name, field_value in self.data.items():
+            formatted_fields[field_name] = {
+                'title': self._format_title_for_field(field_name),
+                'value': self._format_value_for_field(field_value)
+            }
+
+
+        attachments = [
+            {
+                'color': 'danger',
+                'title': self.name,
+                'text': self.description,
+                'fields': [i for i in [
+                    formatted_fields.get('status'),
+                    formatted_fields.get('severity'),
+                    formatted_fields.get('leader'),
+                    formatted_fields.get('start_date')
+                ] if i != None]
+            },
+            {
+                'color': 'warning',
+                'title': 'Investigation',
+                'fields': [i for i in [
+                    formatted_fields.get('symptoms'),
+                    formatted_fields.get('hypothesis'),
+                    formatted_fields.get('comment'),
+                    formatted_fields.get('steps')
+                ] if i != None]
+            }
+        ]
+        print(attachments)
+        channels.post(self.slack_channel, config=config, message='Incident Summary', attachments=attachments)

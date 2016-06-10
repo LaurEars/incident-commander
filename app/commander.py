@@ -111,9 +111,12 @@ class Commander(CommanderBase):
             # begin workflow for creating incident
             return self.create_incident(create_incident.groups()[0])
 
+        summary_match = re.match(r'^\s*summary|summarize', commands, flags=re.I)
+        if summary_match:
+            return self.summarize(channel)
+
         set_match = re.match(r'set[ -]([A-Za-z_]+)\s*(.*)', commands, flags=re.I)
         if set_match:
-            print(set_match.groups())
             return self.set_field(channel, user, set_match.groups()[0], set_match.groups()[1])
 
         get_match = re.match(r'get[ -]([A-Za-z_]+)\s*(.*)', commands, flags=re.I)
@@ -225,3 +228,9 @@ class Commander(CommanderBase):
             response.append([channel, message])
         self.post_message()
         return response
+
+    def summarize(self, channel):
+        self.pre_message()
+        incident = Incident.get_incident_by_channel(self.rdb, channel)
+        incident.post_summary(self.config)
+        self.post_message()
