@@ -77,7 +77,7 @@ class CommanderBase:
             return self.parse_commands(commands, channel=message['channel'], user=message['user'])
         if message['channel'].startswith('D'):
             return self.parse_commands(stripped_message,
-                                       channel=message['channel'])
+                                       channel=message['channel'], user=message.get('user'))
 
     def valid_message(self, message):
         return message.get('user') != self.id
@@ -176,7 +176,7 @@ class Commander(CommanderBase):
             d = d.next()
         except ReqlCursorEmpty:
             return "Cant Find Incident"
-            
+
         r.table('incidents').filter({'slack_channel': channel}).update({
             field: r.row[field].default([]).append({
                 'ts': r.now(),
