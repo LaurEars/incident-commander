@@ -8,7 +8,7 @@ from app.incident import Incident
 from templates.responses import CREATE_INCIDENT_FAILED
 
 
-class Commander:
+class CommanderBase:
     """
     Incident commander main class
     """
@@ -19,6 +19,7 @@ class Commander:
 
         self.name = self.config['name']
         self.id = self.config['id']
+        self.db_name = self.config['db_name']
 
         self.rdb = r.connect(
             host=self.config['db_host'],
@@ -26,8 +27,8 @@ class Commander:
         )
 
         try:
-            r.db_create("commander").run(self.rdb)
-            r.db("commander").table_create('incidents').run(self.rdb)
+            r.db_create(self.db_name).run(self.rdb)
+            r.db(self.db_name).table_create('incidents').run(self.rdb)
             print('Database setup completed.')
         except RqlRuntimeError:
             print('App database already exists.')
@@ -37,7 +38,7 @@ class Commander:
         self.pool = ConnectionPool(
             host=self.config['db_host'],
             port=self.config['db_port'],
-            db="commander"
+            db=self.db_name
         )
 
 
@@ -53,29 +54,51 @@ class Commander:
 
     def process_message(self, message):
         self.pre_message()
-        return_val = self.parse_message(message['text'])
+        return_val = self.parse_message(message)
         self.post_message()
         return return_val
 
     def parse_message(self, message):
-        stripped_message = message.strip()
+        stripped_message = message['text'].strip()
         name_match = re.match(r'<@?{}>:?\s*(.*)'.format(self.id),
                               stripped_message,
                               flags=re.IGNORECASE)
         if name_match:
             commands = name_match.groups()[0]
-            # parse message as incident commander message
-            task_match = re.match(r'add task\s*(.*)', commands, flags=re.I)
-            if task_match:
-                return self.add_task(task_match.groups()[0])
+            return self.parse_commands(commands, channel=message['channel'])
 
-            create_incident = re.match(r'create[ -]incident\s*(.*)',
-                                       commands,
-                                       flags=re.I)
-            if create_incident:
-                # begin workflow for creating incident
-                return self.create_incident(create_incident.groups()[0])
-            return 'no match for this command'
+    def parse_commands(self, commands, channel):
+        return NotImplementedError
+
+
+class Commander(CommanderBase):
+    def __init__(self, *args, **kwargs):
+        super(Commander, self).__init__(*args, **kwargs)
+
+    def parse_commands(self, commands, channel):
+        # Run down a big old list of short-circuiting ifs to determine
+        # which command was called
+
+        task_match = re.match(r'add task\s*(.*)', commands, flags=re.I)
+        if task_match:
+            return self.add_task(task_match.groups()[0])
+
+        create_incident = re.match(r'create[ -]incident\s*(.*)',
+                                   commands,
+                                   flags=re.I)
+        if create_incident:
+            # begin workflow for creating incident
+            return self.create_incident(create_incident.groups()[0])
+
+        set_match = re.match(r'set[ -]([A-Za-z]+)\s*(.*)', commands, flags=re.I)
+        if set_match:
+            return self.set_field(channel, *set_match.groups())
+
+        get_match = re.match(r'get[ -]([A-Za-z]+)\s*(.*)', commands, flags=re.I)
+        if get_match:
+            return self.get_field(channel, get_match.groups()[0])
+
+        return 'no match for this command'
 
     def add_task(self, task):
         # todo: add task to task list
@@ -84,11 +107,23 @@ class Commander:
 
     def create_incident(self, app_name):
         # catches "for app-name" or "app-name"
-        current_app_name = re.match(r'(?:for ?)(.*)', app_name)
+        current_app_name = re.match(r'(?:for\s+)?(.*)', app_name)
         if not current_app_name:
             return CREATE_INCIDENT_FAILED.render()
-        incident = Incident.create_new_incident(app_name, self.config)
+        incident = Incident.create_new_incident(current_app_name.groups()[0], self.config)
         incident.create_channel()
-        # todo: say stuff in channel
-        # todo: push empty document to database
+        incident.save(self.rdb)
         return 'Created incident!: {}'.format(incident.name)
+
+    def set_field(self, channel, field, value):
+        r.table('incidents')\
+            .filter({'channel': channel})\
+            .update({field: value})\
+            .run(self.rdb)
+        return "Set {} to {}".format(field, value)
+
+    def get_field(self, channel, field):
+        document = r.table('incidents')\
+            .filter({'channel': channel})\
+            .run(self.rdb)
+        return document.next().get(field)
