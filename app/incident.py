@@ -73,6 +73,7 @@ class Incident:
         except ReqlCursorEmpty:
             i = Incident()
             i.name = "Cant Find Incident"
+            incident.data = {}
             return i
 
         incident = Incident()
