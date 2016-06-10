@@ -144,17 +144,17 @@ class Commander(CommanderBase):
         if field in LIST_FIELDS:
             return self.add_field(channel, user, field, value)
 
-        r.table('incidents')\
-            .filter({'slack_channel': channel})\
-            .update({field: value})\
-            .run(self.rdb)
+        incident = Incident.get_incident_by_channel(self.rdb, channel)
+        try:
+            incident[field] = value
+            incident.save(self.rdb)
+        except KeyError:
+            return "{} is not a field that exists on an incident".format(field)
         return SET.render(field=field, value=value)
 
     def get_field(self, channel, field):
-        document = r.table('incidents')\
-            .filter({'slack_channel': channel})\
-            .run(self.rdb)
-        val = document.next().get(field)
+        incident = Incident.get_incident_by_channel(self.rdb, channel)
+        val = incident.get(field)
 
         # Use the list template if value is a list, else just return regularly
         if isinstance(val, list):
@@ -178,17 +178,16 @@ class Commander(CommanderBase):
 
         return self.get_field(channel, field)
 
-
-    def remove_field(self, channel, field, displayIndex):
+    def remove_field(self, channel, field, display_index):
         if field not in LIST_FIELDS:
             return '`remove` commands can only be used with one of the following: {}'.format(', '.join(LIST_FIELDS))
 
         # lists are numbered starting from 1, not 0, so subract 1 for the real index
-        index = int(displayIndex)
+        index = int(display_index)
         if index > 0:
             index = index - 1
         else:
-            return 'Items number must be greater than 1'
+            return 'Items number must be 1 or greater'
 
         r.table('incidents').filter({'slack_channel': channel}).update({
             field: r.row[field].change_at(index,
