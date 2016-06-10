@@ -116,7 +116,7 @@ class Commander(CommanderBase):
         incident = Incident.create_new_incident(current_app_name.groups()[0], self.config)
         incident.create_channel()
         incident.save(self.rdb)
-        return 'Created incident!: {}'.format(incident.name)
+        return 'Created incident!: <#{}|{}>'.format(incident.slack_channel, incident.name)
 
     def set_field(self, channel, field, value):
         r.table('incidents')\
