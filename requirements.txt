@@ -6,4 +6,3 @@ slackclient
 rethinkdb
 Jinja2
 repool
-requests
