@@ -59,6 +59,9 @@ class CommanderBase:
         return return_val
 
     def parse_message(self, message):
+        if not self.valid_message(message):
+            return ""
+
         stripped_message = message['text'].strip()
         name_match = re.match(r'<@?{}>:?\s*(.*)'.format(self.id),
                               stripped_message,
@@ -69,6 +72,9 @@ class CommanderBase:
         if message['channel'].startswith('D'):
             return self.parse_commands(stripped_message,
                                        channel=message['channel'])
+
+    def valid_message(self, message):
+        return message['user'] != self.id
 
     def parse_commands(self, commands, channel):
         return NotImplementedError
@@ -131,11 +137,9 @@ class Commander(CommanderBase):
         return GET.render(field=field, value=val)
 
     def add_field(self, channel, field, value):
-        document = r.table('incidents') \
-            .filter({'slack_channel': channel}) \
-            .run(self.rdb)
-        d = document.next()
-        d = r.table('incidents').get(d['id']).update({
+        d = r.table('incidents').filter({'slack_channel': channel}).run(self.rdb)
+        d = d.next()
+        r.table('incidents').filter({'slack_channel': channel}).update({
             field: r.row[field].append(value)
         }).run(self.rdb)
 
