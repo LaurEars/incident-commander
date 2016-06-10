@@ -15,6 +15,7 @@ class Incident:
         self.severity = None
         self.slack_channel = None
         self.description = None
+        self.leader = None
         self.steps = []
         self.symptom = []
         self.config = None
@@ -101,6 +102,7 @@ class Incident:
                      'severity': self.severity,
                      'slack_channel': self.slack_channel,
                      'description': self.description,
+                     'leader': self.leader,
                      'steps': self.steps,
                      'start_date': r.expr(self.start_date),
                      'resolved_date': self.resolved_date},
