@@ -29,9 +29,8 @@ def join(channel, config):
             channel, resp['error']))
 
 
-def post(channel, config, message):
+def post(channel, config, message, **kwargs):
     sc = SlackClient(config['SLACK_TOKEN'])
     resp = sc.api_call('chat.postMessage', channel=channel,
-                       text=message, unfurl_links=True)
+                       text=message, **kwargs)
     posted = resp['ok']
-    print(resp)
