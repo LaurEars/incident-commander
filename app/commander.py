@@ -122,6 +122,11 @@ class Commander(CommanderBase):
         if summary_match:
             return self.summarize(channel)
 
+        resolve_match = re.match(r'resolve\s*(.*)', commands, flags=re.I)
+        if resolve_match:
+            incident = Incident.get_incident_by_channel(self.rdb, channel)
+            return incident.resolve(channel, self.rdb)
+
         set_match = re.match(
             r'set[ -]([A-Za-z_]+)\s*(.*)', commands, flags=re.I)
         if set_match:
@@ -153,7 +158,6 @@ class Commander(CommanderBase):
             current_app_name.groups()[0], self.config)
         incident.create_channel()
         incident.save(self.rdb)
-        requests.get('http://172.29.30.161/events/sev-1-start') # Hit the lights!
         return 'Created incident!: <#{}|{}>'.format(incident.slack_channel, incident.name)
 
     def set_field(self, channel, user, field, value):
