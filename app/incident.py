@@ -2,6 +2,7 @@ import datetime
 import rethinkdb as r
 import app.channels as channels
 from templates.responses import NEW_CHANNEL_MESSAGE
+import json
 
 
 class Incident:
@@ -53,7 +54,7 @@ class Incident:
         incident.severity = result['severity']
         incident.slack_channel = result['slack_channel']
         incident.description = result['description']
-        incident.steps = result['steps']
+        incident.steps = result.get('steps')
         incident.data = result
         return incident
 
@@ -116,25 +117,32 @@ class Incident:
             if isinstance(f, str):
                 return f
             elif f['removed']:
-                return '~{}~'.format(f['text'])
+                return '• ~{}~  (<@{}>)'.format(f['text'], f['user'])
             else:
-                return f['text']
+                return '• {} (<@{}>)'.format(f['text'], f['user'])
 
         if isinstance(field_value, list):
-            return '\\n'.join([_get_text(i) for i in field_value])
+            return '\n'.join([_get_text(i) for i in field_value])
+        elif isinstance(field_value, datetime.datetime):
+            return field_value.strftime("%Y-%m-%d %I:%M:%S")
         return field_value
 
     def post_summary(self, config):
+        short_fields = [
+            'status', 'severity', 'leader', 'start_date'
+        ]
         formatted_fields = {}
         for field_name, field_value in self.data.items():
             formatted_fields[field_name] = {
                 'title': self._format_title_for_field(field_name),
-                'value': self._format_value_for_field(field_value)
+                'value': self._format_value_for_field(field_value),
+                'short': field_name in short_fields
             }
 
 
         attachments = [
             {
+                'mrkdwn_in': ['text', 'fields'],
                 'color': 'danger',
                 'title': self.name,
                 'text': self.description,
@@ -146,6 +154,7 @@ class Incident:
                 ] if i != None]
             },
             {
+                'mrkdwn_in': ['text', 'fields'],
                 'color': 'warning',
                 'title': 'Investigation',
                 'fields': [i for i in [
@@ -157,4 +166,4 @@ class Incident:
             }
         ]
         print(attachments)
-        channels.post(self.slack_channel, config=config, message='Incident Summary', attachments=attachments)
+        channels.post(self.slack_channel, config=config, message='*Incident Summary*', attachments=json.dumps(attachments))
