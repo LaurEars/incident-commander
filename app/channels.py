@@ -1,5 +1,6 @@
 from slackclient import SlackClient
 
+
 def create(name, config, iteration=0):
     sc = SlackClient(config['APP_TOKEN'])
     if iteration:
@@ -14,7 +15,9 @@ def create(name, config, iteration=0):
         if resp['error'] == 'name_taken':
             return create(name, config, iteration + 1)
         else:
-            raise ValueError('Failed creating channel {}. Error was {}'.format(name, resp['error']))
+            raise ValueError('Failed creating channel {}. Error was {}'
+                             .format(name, resp['error']))
+
 
 def join(channel, config):
     sc = SlackClient(config['APP_TOKEN'])
@@ -22,10 +25,13 @@ def join(channel, config):
     joined = resp['ok']
 
     if not joined:
-        raise ValueError('Failed to join channel {}. Error was {}'.format(channelName, resp['error']))
+        raise ValueError('Failed to join channel {}. Error was {}'.format(
+            channelName, resp['error']))
+
 
 def post(channel, config, message):
     sc = SlackClient(config['SLACK_TOKEN'])
-    resp = sc.api_call('chat.postMessage', channel=channel, text=message, unfurl_links=True)
+    resp = sc.api_call('chat.postMessage', channel=channel,
+                       text=message, unfurl_links=True)
     posted = resp['ok']
     print(resp)
