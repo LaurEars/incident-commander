@@ -10,7 +10,7 @@ from templates.responses import NEW_CHANNEL_MESSAGE, SUMMARY
 LIST_FIELDS = [
     'symptom',
     'hypothesis',
-    'comments',
+    'comment',
     'steps',
     'tasks'
 ]
