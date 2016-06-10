@@ -20,7 +20,6 @@ def process_message(data):
 
 # crontable functions
 def periodic_nag():
-    print(commander.nag())
     for channel, message in commander.nag():
         outputs.append([channel, message])
 
