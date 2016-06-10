@@ -25,6 +25,7 @@ Put the following into `rtmbot.conf`:
 DEBUG: False
 
 SLACK_TOKEN: "xoxb-111111111111-2222222222222222222"
+APP_TOKEN: "xoxp-1111111111-2222222222-3333333333-444444444"
 
 db_host: "localhost"
 db_port: 28015
@@ -32,6 +33,7 @@ db_name: "commander"
 
 name: "commander"
 id: "U1EHRETL3"
+
 ```
 
 ## Development
@@ -44,6 +46,12 @@ make pep8
 
 ## Running the Bot
 
+In one terminal, run:
+```
+rethinkdb
+```
+
+In another terminal, run:
 ```
 python rtmbot.py
 ```
