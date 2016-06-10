@@ -5,13 +5,14 @@ from repool import ConnectionPool
 from rethinkdb.errors import RqlRuntimeError, RqlDriverError
 
 from app.incident import Incident
-from templates.responses import (CREATE_INCIDENT_FAILED, SET, GET, GET_LIST, NAG)
+from templates.responses import (
+    CREATE_INCIDENT_FAILED, SET, GET, GET_LIST, NAG)
 
 LIST_FIELDS = [
     'symptom',
     'hypothesis',
-    'comment',
-    'step',
+    'comments',
+    'steps',
     'tasks'
 ]
 
@@ -21,6 +22,7 @@ CRITICAL_FIELDS = [
     'severity',
     'leader'
 ]
+
 
 class CommanderBase:
     """
@@ -57,7 +59,6 @@ class CommanderBase:
             db=self.db_name
         )
 
-
     def pre_message(self):
         try:
             self.rdb = self.pool.acquire()
@@ -66,7 +67,6 @@ class CommanderBase:
 
     def post_message(self):
         self.pool.release(self.rdb)
-
 
     def process_message(self, message):
         self.pre_message()
@@ -97,6 +97,7 @@ class CommanderBase:
 
 
 class Commander(CommanderBase):
+
     def __init__(self, *args, **kwargs):
         super(Commander, self).__init__(*args, **kwargs)
 
@@ -111,23 +112,28 @@ class Commander(CommanderBase):
             # begin workflow for creating incident
             return self.create_incident(create_incident.groups()[0])
 
-        summary_match = re.match(r'^\s*summary|summarize', commands, flags=re.I)
+        summary_match = re.match(
+            r'^\s*summary|summarize', commands, flags=re.I)
         if summary_match:
             return self.summarize(channel)
 
-        set_match = re.match(r'set[ -]([A-Za-z_]+)\s*(.*)', commands, flags=re.I)
+        set_match = re.match(
+            r'set[ -]([A-Za-z_]+)\s*(.*)', commands, flags=re.I)
         if set_match:
             return self.set_field(channel, user, set_match.groups()[0], set_match.groups()[1])
 
-        get_match = re.match(r'get[ -]([A-Za-z_]+)\s*(.*)', commands, flags=re.I)
+        get_match = re.match(
+            r'get[ -]([A-Za-z_]+)\s*(.*)', commands, flags=re.I)
         if get_match:
             return self.get_field(channel, get_match.groups()[0])
 
-        add_match = re.match(r'add[ -]([A-Za-z_]+)\s*(.*)', commands, flags=re.I)
+        add_match = re.match(
+            r'add[ -]([A-Za-z_]+)\s*(.*)', commands, flags=re.I)
         if add_match:
             return self.add_field(channel, user, add_match.groups()[0], add_match.groups()[1])
 
-        remove_match = re.match(r'remove[ -]([A-Za-z_]+)\s+([1-9]\d*)', commands, flags=re.I)
+        remove_match = re.match(
+            r'remove[ -]([A-Za-z_]+)\s+([1-9]\d*)', commands, flags=re.I)
         if remove_match:
             return self.remove_field(channel, *remove_match.groups())
 
@@ -138,7 +144,8 @@ class Commander(CommanderBase):
         current_app_name = re.match(r'(?:for\s+)?(.*)', app_name)
         if not current_app_name:
             return CREATE_INCIDENT_FAILED.render()
-        incident = Incident.create_new_incident(current_app_name.groups()[0], self.config)
+        incident = Incident.create_new_incident(
+            current_app_name.groups()[0], self.config)
         incident.create_channel()
         incident.save(self.rdb)
         return 'Created incident!: <#{}|{}>'.format(incident.slack_channel, incident.name)
@@ -147,17 +154,17 @@ class Commander(CommanderBase):
         if field in LIST_FIELDS:
             return self.add_field(channel, user, field, value)
 
-        r.table('incidents')\
-            .filter({'slack_channel': channel})\
-            .update({field: value})\
-            .run(self.rdb)
+        incident = Incident.get_incident_by_channel(self.rdb, channel)
+        try:
+            incident[field] = value
+            incident.save(self.rdb)
+        except KeyError:
+            return "{} is not a field that exists on an incident".format(field)
         return SET.render(field=field, value=value)
 
     def get_field(self, channel, field):
-        document = r.table('incidents')\
-            .filter({'slack_channel': channel})\
-            .run(self.rdb)
-        val = document.next().get(field)
+        incident = Incident.get_incident_by_channel(self.rdb, channel)
+        val = incident.get(field)
 
         # Use the list template if value is a list, else just return regularly
         if isinstance(val, list):
@@ -168,7 +175,8 @@ class Commander(CommanderBase):
         if field not in LIST_FIELDS:
             return '`add` commands can only be used with one of the following: {}'.format(', '.join(LIST_FIELDS))
 
-        d = r.table('incidents').filter({'slack_channel': channel}).run(self.rdb)
+        d = r.table('incidents').filter(
+            {'slack_channel': channel}).run(self.rdb)
         d = d.next()
         r.table('incidents').filter({'slack_channel': channel}).update({
             field: r.row[field].default([]).append({
@@ -181,24 +189,24 @@ class Commander(CommanderBase):
 
         return self.get_field(channel, field)
 
-
-    def remove_field(self, channel, field, displayIndex):
+    def remove_field(self, channel, field, display_index):
         if field not in LIST_FIELDS:
             return '`remove` commands can only be used with one of the following: {}'.format(', '.join(LIST_FIELDS))
 
-        # lists are numbered starting from 1, not 0, so subract 1 for the real index
-        index = int(displayIndex)
+        # lists are numbered starting from 1, not 0, so subract 1 for the real
+        # index
+        index = int(display_index)
         if index > 0:
             index = index - 1
         else:
-            return 'Items number must be greater than 1'
+            return 'Items number must be 1 or greater'
 
         r.table('incidents').filter({'slack_channel': channel}).update({
             field: r.row[field].change_at(index,
-                r.row[field][index].merge({
-                    'removed': True
-                })
-            )
+                                          r.row[field][index].merge({
+                                              'removed': True
+                                          })
+                                          )
         }).run(self.rdb)
 
         return self.get_field(channel, field)
@@ -223,8 +231,9 @@ class Commander(CommanderBase):
         response = []
         incidents = r.table('incidents').run(self.rdb)
         for incident in incidents:
-            channel = incident.get('slack_channel') # This will just return to the incident channel, thoughts?
-            message = "" # This should be the summary!
+            # This will just return to the incident channel, thoughts?
+            channel = incident.get('slack_channel')
+            message = ""  # This should be the summary!
             response.append([channel, message])
         self.post_message()
         return response

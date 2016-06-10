@@ -33,6 +33,30 @@ GET_LIST = Template("""
 {%- endfor %}
 """)
 
+SUMMARY = Template("""
+Summary of *{{name}}* incident:
+_Status_: *{{status}}*
+_Severity_: *{{severity}}*
+_Started_: *{{start_date}}*
+{% if status == "resolved" %}
+_Ended_: *{{resolved_date}}*
+{% endif %}
+
+_Description_:
+``` {{description}} ```
+
+{% if symptoms %}
+_Symptoms_:
+```
+{% for symptom in symptoms %}
+    {{loop.index}}: {{symptom}}
+{% endfor %}
+```
+{% endif %}
+
+""")
+
+
 NEW_CHANNEL_MESSAGE = Template("""
 *When an incident occurs, follow these steps:*
    1. Email incident-response@zefr.com to alert about SEV
