@@ -24,10 +24,14 @@ Put the following into `rtmbot.conf`:
 ```
 DEBUG: False
 
-SLACK_TOKEN: "xoxb-GET-YOUR-OWN"
+SLACK_TOKEN: "xoxb-111111111111-2222222222222222222"
 
 db_host: "localhost"
 db_port: 28015
+db_name: "commander"
+
+name: "commander"
+id: "U1EHRETL3"
 ```
 
 ## Development
