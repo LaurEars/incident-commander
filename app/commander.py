@@ -124,7 +124,7 @@ class Commander(CommanderBase):
         if add_match:
             return self.add_field(channel, user, add_match.groups()[0], add_match.groups()[1])
 
-        remove_match = re.match(r'remove[ -]([A-Za-z_])\s+([1-9]\d*)', commands, flags=re.I)
+        remove_match = re.match(r'remove[ -]([A-Za-z_]+)\s+([1-9]\d*)', commands, flags=re.I)
         if remove_match:
             return self.remove_field(channel, *remove_match.groups())
 
@@ -191,7 +191,7 @@ class Commander(CommanderBase):
             return 'Items number must be greater than 1'
 
         r.table('incidents').filter({'slack_channel': channel}).update({
-            field: r.row[field].changeAt(index,
+            field: r.row[field].change_at(index,
                 r.row[field][index].merge({
                     'removed': True
                 })

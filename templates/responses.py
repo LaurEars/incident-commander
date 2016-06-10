@@ -22,17 +22,15 @@ GET = Template("*{{field}}*: {{value}}")
 
 GET_LIST = Template("""
 *{{field}}:*
-{% for val in value %}
->    {{loop.index}}: {% if val is iterable -%}
-        {% if val.removed is sameas false -%}
-            {{val.text}}
-        {% else %}
-            ~{{val.text}}~
-        {%- endif %} (<{{val.user}}>)
-    {% else %}
+
+>>> {% for val in value -%}
+{{loop.index}}. {% if val is iterable -%}
+        {% if val.removed is sameas false %} {{val.text}}
+        {%- else %} ~{{val.text}}~ {% endif %} (<@{{val.user}}>)
+{% else -%}
          {{val}}
-    {%- endif %}
-{% endfor %}
+    {% endif %}
+{%- endfor %}
 """)
 
 NEW_CHANNEL_MESSAGE = Template("""
