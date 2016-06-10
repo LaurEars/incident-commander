@@ -89,10 +89,6 @@ class Incident:
         incident.data = result
         return incident
 
-    def add_task(self, task):
-        self.steps.append(task)
-        # todo: needs some database saving stuff
-
     def create_channel(self):
         """Ensures that a channel is created for the incident"""
         # todo: create channel in slack - hopefully it doesn't already exist
@@ -145,7 +141,8 @@ class Incident:
                     conflict="update")\
             .run(db_conn)
 
-    def _format_title_for_field(self, field):
+    @staticmethod
+    def _format_title_for_field(field):
         titles = {
             'status': 'Current Status',
             'symptom': 'Symptoms',
@@ -159,7 +156,8 @@ class Incident:
         else:
             return field.capitalize()
 
-    def _format_value_for_field(self, field_value):
+    @staticmethod
+    def _format_value_for_field(field_value):
         def _get_text(f):
             if isinstance(f, str):
                 return f
@@ -181,8 +179,8 @@ class Incident:
         formatted_fields = {}
         for field_name, field_value in self.data.items():
             formatted_fields[field_name] = {
-                'title': self._format_title_for_field(field_name),
-                'value': self._format_value_for_field(field_value),
+                'title': Incident._format_title_for_field(field_name),
+                'value': Incident._format_value_for_field(field_value),
                 'short': field_name in short_fields
             }
 
@@ -197,7 +195,7 @@ class Incident:
                     formatted_fields.get('severity'),
                     formatted_fields.get('leader'),
                     formatted_fields.get('start_date')
-                ] if i != None]
+                ] if i is not None]
             },
             {
                 'mrkdwn_in': ['text', 'fields'],
@@ -208,7 +206,7 @@ class Incident:
                     formatted_fields.get('hypothesis'),
                     formatted_fields.get('comment'),
                     formatted_fields.get('steps')
-                ] if i != None]
+                ] if i is not None]
             }
         ]
         print(attachments)

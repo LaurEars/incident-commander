@@ -34,5 +34,5 @@ def periodic_updates():
 
 
 # Add function to crontable
-crontable.append([15, "periodic_nag"])
-crontable.append([60, "periodic_updates"])
+crontable.append([15 * 60 , "periodic_nag"]) # nag every 15 minutes
+crontable.append([90 * 60 , "periodic_updates"]) # update every 90 minutes
