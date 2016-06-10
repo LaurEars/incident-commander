@@ -1,9 +1,9 @@
 import datetime
+import json
 import requests
 import rethinkdb as r
 import app.channels as channels
 from templates.responses import NEW_CHANNEL_MESSAGE, SUMMARY
-
 
 class Incident:
 
@@ -19,6 +19,8 @@ class Incident:
         self.leader = None
         self.steps = []
         self.symptom = []
+        self.comment = []
+        self.hypothesis = []
         self.config = None
         self.resolved = False
 
@@ -59,6 +61,9 @@ class Incident:
         incident.description = result.get('description')
         incident.steps = result.get('steps')
         incident.symptom = result.get('symptom')
+        incident.comment = result.get('comment')
+        incident.hypothesis = result.get('hypothesis')
+        incident.data = result
         return incident
 
     def add_task(self, task):
@@ -109,10 +114,84 @@ class Incident:
                      'description': self.description,
                      'leader': self.leader,
                      'steps': self.steps,
+                     'symptom': self.symptom,
+                     'comment': self.comment,
+                     'hypothesis': self.hypothesis,
                      'start_date': r.expr(self.start_date),
                      'resolved_date': self.resolved_date},
                     conflict="update")\
             .run(db_conn)
+
+    def _format_title_for_field(self, field):
+        titles = {
+            'status': 'Current Status',
+            'symptom': 'Symptoms',
+            'hypothesis': 'Hypotheses under investigation',
+            'start_date': 'First reported',
+            'steps': 'Steps taken',
+            'comment': 'Comments'
+        }
+        if field in titles:
+            return titles[field]
+        else:
+            return field.capitalize()
+
+
+    def _format_value_for_field(self, field_value):
+        def _get_text(f):
+            if isinstance(f, str):
+                return f
+            elif f['removed']:
+                return '• ~{}~  (<@{}>)'.format(f['text'], f['user'])
+            else:
+                return '• {} (<@{}>)'.format(f['text'], f['user'])
+
+        if isinstance(field_value, list):
+            return '\n'.join([_get_text(i) for i in field_value])
+        elif isinstance(field_value, datetime.datetime):
+            return field_value.strftime("%Y-%m-%d %I:%M:%S")
+        return field_value
+
+    def post_summary(self, config):
+        short_fields = [
+            'status', 'severity', 'leader', 'start_date'
+        ]
+        formatted_fields = {}
+        for field_name, field_value in self.data.items():
+            formatted_fields[field_name] = {
+                'title': self._format_title_for_field(field_name),
+                'value': self._format_value_for_field(field_value),
+                'short': field_name in short_fields
+            }
+
+
+        attachments = [
+            {
+                'mrkdwn_in': ['text', 'fields'],
+                'color': 'danger',
+                'title': self.name,
+                'text': self.description,
+                'fields': [i for i in [
+                    formatted_fields.get('status'),
+                    formatted_fields.get('severity'),
+                    formatted_fields.get('leader'),
+                    formatted_fields.get('start_date')
+                ] if i != None]
+            },
+            {
+                'mrkdwn_in': ['text', 'fields'],
+                'color': 'warning',
+                'title': 'Investigation',
+                'fields': [i for i in [
+                    formatted_fields.get('symptoms'),
+                    formatted_fields.get('hypothesis'),
+                    formatted_fields.get('comment'),
+                    formatted_fields.get('steps')
+                ] if i != None]
+            }
+        ]
+        print(attachments)
+        channels.post(self.slack_channel, config=config, message='*Incident Summary*', attachments=json.dumps(attachments))
 
     def resolve(self, channel, db_conn):
         r.table('incidents').get(channel)\

@@ -12,7 +12,7 @@ from templates.responses import (
 LIST_FIELDS = [
     'symptom',
     'hypothesis',
-    'comments',
+    'comment',
     'steps',
     'tasks'
 ]
@@ -117,10 +117,10 @@ class Commander(CommanderBase):
             # begin workflow for creating incident
             return self.create_incident(create_incident.groups()[0])
 
-        summary_match = re.match(r'summary\s*(.*)', commands, flags=re.I)
+        summary_match = re.match(
+            r'^\s*summary|summarize', commands, flags=re.I)
         if summary_match:
-            incident = Incident.get_incident_by_channel(self.rdb, channel)
-            return incident.summarize()
+            return self.summarize(channel)
 
         resolve_match = re.match(r'resolve\s*(.*)', commands, flags=re.I)
         if resolve_match:
@@ -247,3 +247,9 @@ class Commander(CommanderBase):
             response.append([channel, message])
         self.post_message()
         return response
+
+    def summarize(self, channel):
+        self.pre_message()
+        incident = Incident.get_incident_by_channel(self.rdb, channel)
+        incident.post_summary(self.config)
+        self.post_message()
