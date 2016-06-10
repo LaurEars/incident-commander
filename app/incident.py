@@ -32,6 +32,23 @@ class Incident:
         # todo: needs some database saving stuff
         return incident
 
+    @staticmethod
+    def get_incident_by_channel(db_conn, slack_channel):
+        result = r.table('incidents')\
+            .filter({'slack_channel': slack_channel})\
+            .run(db_conn).next()
+        incident = Incident()
+        incident.start_date = result['start_date']
+        incident.resolved_date = result['resolved_date']
+        incident.status = result['status']
+        incident.name = result['name']
+        incident.app = result['app']
+        incident.severity = result['severity']
+        incident.slack_channel = result['slack_channel']
+        incident.description = result['description']
+        incident.tasks = result['tasks']
+        return incident
+
     def add_task(self, task):
         self.tasks.append(task)
         # todo: needs some database saving stuff
