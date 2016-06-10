@@ -1,5 +1,6 @@
 import datetime
 import rethinkdb as r
+from app.channels import createChannel
 
 
 class Incident:
@@ -13,9 +14,10 @@ class Incident:
         self.slack_channel = None
         self.description = None
         self.tasks = []
+        self.config = None
 
     @staticmethod
-    def create_new_incident(app_name):
+    def create_new_incident(app_name, config):
         incident = Incident()
         incident.start_date = datetime.datetime.now(r.make_timezone('-07:00'))
         incident.resolved_date = None
@@ -28,6 +30,7 @@ class Incident:
         incident.slack_channel = None
         incident.description = None
         incident.tasks = []
+        incident.config = config
         # todo: add rest of attributes from planning session
         # todo: needs some database saving stuff
         return incident
@@ -56,7 +59,7 @@ class Incident:
     def create_channel(self):
         """Ensures that a channel is created for the incident"""
         # todo: create channel in slack - hopefully it doesn't already exist
-        self.slack_channel = None
+        createChannel(self.name, self.config)
         # todo: update in db
 
     @staticmethod
