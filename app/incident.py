@@ -190,7 +190,7 @@ class Incident:
                     formatted_fields.get('severity'),
                     formatted_fields.get('leader'),
                     formatted_fields.get('start_date')
-                ] if i != None]
+                ] if i is not None]
             },
             {
                 'mrkdwn_in': ['text', 'fields'],
@@ -201,7 +201,7 @@ class Incident:
                     formatted_fields.get('hypothesis'),
                     formatted_fields.get('comment'),
                     formatted_fields.get('steps')
-                ] if i != None]
+                ] if i is not None]
             }
         ]
         print(attachments)
