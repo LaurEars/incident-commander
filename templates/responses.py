@@ -27,7 +27,7 @@ GET_LIST = Template("""
 {{loop.index}}. {% if val is iterable -%}
         {% if val.removed is sameas false %} {{val.text}}
         {%- else %} ~{{val.text}}~ {% endif %} (<@{{val.user}}>)
-{% else %}
+{% else -%}
          {{val}}
     {% endif %}
 {%- endfor %}
