@@ -8,7 +8,7 @@ from app.incident import Incident
 from templates.responses import CREATE_INCIDENT_FAILED
 
 
-class Commander:
+class CommanderBase:
     """
     Incident commander main class
     """
@@ -68,6 +68,14 @@ class Commander:
             return self.parse_commands(commands, channel=message['channel'])
 
     def parse_commands(self, commands, channel):
+        return NotImplementedError
+
+
+class Commander(CommanderBase):
+    def __init__(self, *args, **kwargs):
+        super(Commander, self).__init__(*args, **kwargs)
+
+    def parse_commands(self, commands, channel):
         # Run down a big old list of short-circuiting ifs to determine
         # which command was called
 
@@ -108,3 +116,10 @@ class Commander:
             .filter({'channel': channel})\
             .update({field: value})\
             .run(self.rdb)
+        return "Set {} to {}".format(field, value)
+
+    def get_field(self, channel, field):
+        document = r.table('incidents')\
+            .filter({'channel': channel})\
+            .run()
+        return document.get(field)
