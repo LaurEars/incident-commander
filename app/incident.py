@@ -1,6 +1,6 @@
 import datetime
 import rethinkdb as r
-from app.channels import createChannel
+import app.channels as channels
 
 
 class Incident:
@@ -59,8 +59,14 @@ class Incident:
     def create_channel(self):
         """Ensures that a channel is created for the incident"""
         # todo: create channel in slack - hopefully it doesn't already exist
-        createChannel(self.name, self.config)
-        # todo: update in db
+        try:
+            resp = channels.create(self.name, self.config)
+            self.slack_channel = resp['channel']['id']
+            self.name = resp['channel']['name']
+            channels.join(self.slack_channel, self.config)
+
+        except ValueError as err:
+            print(err)
 
     @staticmethod
     def get_incident(db_conn, id):
