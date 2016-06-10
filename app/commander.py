@@ -81,11 +81,6 @@ class Commander(CommanderBase):
     def parse_commands(self, commands, channel):
         # Run down a big old list of short-circuiting ifs to determine
         # which command was called
-
-        task_match = re.match(r'add task\s*(.*)', commands, flags=re.I)
-        if task_match:
-            return self.add_task(task_match.groups()[0])
-
         create_incident = re.match(r'create[ -]incident\s*(.*)',
                                    commands,
                                    flags=re.I)
@@ -101,12 +96,11 @@ class Commander(CommanderBase):
         if get_match:
             return self.get_field(channel, get_match.groups()[0])
 
-        return 'no match for this command'
+        add_match = re.match(r'add[ -]([A-Za-z_]+)\s*(.*)', commands, flags=re.I)
+        if add_match:
+            return self.add_field(channel, *add_match.groups())
 
-    def add_task(self, task):
-        # todo: add task to task list
-        print(task)
-        return 'Added task to list!'
+        return 'no match for this command'
 
     def create_incident(self, app_name):
         # catches "for app-name" or "app-name"
@@ -131,3 +125,13 @@ class Commander(CommanderBase):
             .run(self.rdb)
         d = document.next()
         return GET.render(field=field, value=d.get(field))
+
+    def add_field(self, channel, field, value):
+        document = r.table('incidents')\
+            .filter({'slack_channel': channel})\
+            .run(self.rdb)
+        print('adding field')
+        d = document.next()
+        d = r.table('incidents')\
+            .get(d['id'])[field].append(value).run(self.rdb)
+        return SET.render(field=field, value=value)
