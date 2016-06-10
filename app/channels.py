@@ -26,7 +26,7 @@ def join(channel, config):
 
     if not joined:
         raise ValueError('Failed to join channel {}. Error was {}'.format(
-            channelName, resp['error']))
+            channel, resp['error']))
 
 
 def post(channel, config, message):
