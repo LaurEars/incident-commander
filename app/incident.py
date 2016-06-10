@@ -2,6 +2,7 @@ import datetime
 import json
 import requests
 import rethinkdb as r
+from rethinkdb.errors import ReqlCursorEmpty
 import app.channels as channels
 from templates.responses import NEW_CHANNEL_MESSAGE, SUMMARY
 
@@ -65,7 +66,13 @@ class Incident:
     def get_incident_by_channel(db_conn, slack_channel):
         result = r.table('incidents')\
             .filter({'slack_channel': slack_channel})\
-            .run(db_conn).next()
+            .run(db_conn)
+
+        try:
+            result = result.next()
+        except ReqlCursorEmpty:
+            return "Cant Find Incident"
+            
         incident = Incident()
         incident.start_date = result.get('start_date')
         incident.resolved_date = result.get('resolved_date')
