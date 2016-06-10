@@ -78,7 +78,12 @@ class CommanderBase:
         if not self.valid_message(message):
             return ""
 
-        stripped_message = message['text'].strip()
+        stripped_message = message.get('text')
+        if stripped_message is None:
+            return ""
+        else:
+            stripped_message = stripped_message.strip()
+
         name_match = re.match(r'<@?{}>:?\s*(.*)'.format(self.id),
                               stripped_message,
                               flags=re.IGNORECASE)
@@ -112,10 +117,15 @@ class Commander(CommanderBase):
             # begin workflow for creating incident
             return self.create_incident(create_incident.groups()[0])
 
+        summary_match = re.match(r'summary\s*(.*)', commands, flags=re.I)
+        if summary_match:
+            incident = Incident.get_incident_by_channel(self.rdb, channel)
+            print(incident.summarize())
+            return incident.summarize()
+
         set_match = re.match(
             r'set[ -]([A-Za-z_]+)\s*(.*)', commands, flags=re.I)
         if set_match:
-            print(set_match.groups())
             return self.set_field(channel, user, set_match.groups()[0], set_match.groups()[1])
 
         get_match = re.match(
@@ -152,7 +162,7 @@ class Commander(CommanderBase):
 
         incident = Incident.get_incident_by_channel(self.rdb, channel)
         try:
-            incident[field] = value
+            setattr(incident, field, value)
             incident.save(self.rdb)
         except KeyError:
             return "{} is not a field that exists on an incident".format(field)
@@ -160,7 +170,7 @@ class Commander(CommanderBase):
 
     def get_field(self, channel, field):
         incident = Incident.get_incident_by_channel(self.rdb, channel)
-        val = incident.get(field)
+        val = getattr(incident, field)
 
         # Use the list template if value is a list, else just return regularly
         if isinstance(val, list):

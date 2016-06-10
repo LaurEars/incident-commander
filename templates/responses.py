@@ -48,8 +48,8 @@ _Description_:
 {% if symptoms %}
 _Symptoms_:
 ```
-{% for symptom in symptoms %}
-    {{loop.index}}: {{symptom}}
+{% for s in symptom %}
+    {{loop.index}}: {{s}}
 {% endfor %}
 ```
 {% endif %}
