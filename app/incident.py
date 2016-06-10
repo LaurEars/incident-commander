@@ -1,7 +1,7 @@
 import datetime
 import rethinkdb as r
 import app.channels as channels
-
+from templates.responses import NEW_CHANNEL_MESSAGE
 
 class Incident:
     def __init__(self):
@@ -64,7 +64,7 @@ class Incident:
             self.slack_channel = resp['channel']['id']
             self.name = resp['channel']['name']
             channels.join(self.slack_channel, self.config)
-
+            channels.post(self.slack_channel, self.config, NEW_CHANNEL_MESSAGE.render())
         except ValueError as err:
             print(err)
 

@@ -74,7 +74,7 @@ class CommanderBase:
                                        channel=message['channel'])
 
     def valid_message(self, message):
-        return message['user'] != self.id
+        return message.get('user') != self.id
 
     def parse_commands(self, commands, channel):
         return NotImplementedError

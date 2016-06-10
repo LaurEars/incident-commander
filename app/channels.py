@@ -23,3 +23,9 @@ def join(channel, config):
 
     if not joined:
         raise ValueError('Failed to join channel {}. Error was {}'.format(channelName, resp['error']))
+
+def post(channel, config, message):
+    sc = SlackClient(config['SLACK_TOKEN'])
+    resp = sc.api_call('chat.postMessage', channel=channel, text=message, unfurl_links=True)
+    posted = resp['ok']
+    print(resp)
