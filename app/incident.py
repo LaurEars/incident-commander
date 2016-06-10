@@ -19,6 +19,7 @@ class Incident:
         self.steps = []
         self.symptom = []
         self.comment = []
+        self.hypothesis = []
         self.config = None
 
     @staticmethod
@@ -58,6 +59,7 @@ class Incident:
         incident.steps = result.get('steps')
         incident.symptom = result.get('symptom')
         incident.comment = result.get('comment')
+        incident.hypothesis = result.get('hypothesis')
         incident.data = result
         return incident
 
@@ -107,6 +109,9 @@ class Incident:
                      'description': self.description,
                      'leader': self.leader,
                      'steps': self.steps,
+                     'symptom': self.symptom,
+                     'comment': self.comment,
+                     'hypothesis': self.hypothesis,
                      'start_date': r.expr(self.start_date),
                      'resolved_date': self.resolved_date},
                     conflict="update")\
