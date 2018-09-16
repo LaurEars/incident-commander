@@ -9,9 +9,11 @@ env:
     - TOX_ENV=flake8
 cache: pip
 install:
-  - "travis_retry pip install setuptools --upgrade"
-  - "travis_retry pip install tox"
+  - "pip install -r requirements.txt"
+  - "pip install -r requirements-dev.txt"
+#  - "travis_retry pip install setuptools --upgrade"
+#  - "travis_retry pip install tox"
 script:
-  - tox -e $TOX_ENV
-after_script:
-  - cat .tox/$TOX_ENV/log/*.log
+  - pytest
+#after_script:
+#  - cat .tox/$TOX_ENV/log/*.log
